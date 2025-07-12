@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NoteModel{
   final String id;
   final String title;
   final String content;
-  final DateTime createdAt;
-  final DateTime lastModifiedAt;
+  final Timestamp createdAt;
+  final Timestamp lastModifiedAt;
   final bool isPinned;
 
   NoteModel({
@@ -21,19 +22,19 @@ class NoteModel{
       'id':id,
       'title':title,
       'content':content,
-      'createdAt':createdAt.toIso8601String(),
-      'lastModifiedAt':lastModifiedAt.toIso8601String(),
+      'createdAt':createdAt,
+      'lastModifiedAt':lastModifiedAt,
       'isPinned':isPinned,
     };
   }
 
   factory NoteModel.fromJson(Map<String,dynamic> json){
     return NoteModel(
-      id: json['id'],
+      id: json['id']??"",
       title: json['title'],
       content: json['content'],
-      createdAt: DateTime.parse(json['createdAt']),
-      lastModifiedAt: DateTime.parse(json['lastModifiedAt']),
+      createdAt: json['createdAt'],
+      lastModifiedAt: json['lastModifiedAt'],
       isPinned: json['isPinned'],
     );
   }
@@ -42,8 +43,8 @@ class NoteModel{
     String? id,
     String? title,
     String? content,
-    DateTime? createdAt,
-    DateTime? lastModifiedAt,
+    Timestamp? createdAt,
+    Timestamp? lastModifiedAt,
     bool? isPinned,
   }){
     return NoteModel(
@@ -54,5 +55,10 @@ class NoteModel{
       lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
       isPinned: isPinned ?? this.isPinned,
     );
+  }
+
+  @override
+  String toString() {
+    return 'NoteModel(id: $id, title: $title, content: $content, createdAt: $createdAt, lastModifiedAt: $lastModifiedAt, isPinned: $isPinned)';
   }
 }

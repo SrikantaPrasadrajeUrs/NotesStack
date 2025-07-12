@@ -10,12 +10,8 @@ class NotesService{
     await notes.add(note.toJson());
   }
 
-  Stream<List<NoteModel>> getNotes(){
-    return notes.snapshots().map((snapshot){
-      return snapshot.docs.map((doc){
-        return NoteModel.fromJson(doc as Map<String,dynamic>);
-      }).toList();
-    });
+  Stream<QuerySnapshot<Object?>> getNotes(){
+    return notes.snapshots();
   }
 
   Future<void> deleteNote(String id)async{
