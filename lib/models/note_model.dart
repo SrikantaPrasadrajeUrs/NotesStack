@@ -17,7 +17,7 @@ class NoteModel{
     required this.isPinned,
   });
 
-  Map<String,dynamic>  toJson(){
+  Map<String,dynamic> toJson(){
     return {
       'id':id,
       'title':title,
@@ -46,7 +46,7 @@ class NoteModel{
     Timestamp? createdAt,
     Timestamp? lastModifiedAt,
     bool? isPinned,
-  }){
+  }) {
     return NoteModel(
       id: id ?? this.id,
       title: title ?? this.title,

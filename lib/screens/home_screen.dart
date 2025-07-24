@@ -3,7 +3,6 @@ import '../models/note_model.dart';
 import '../repository/notes_repo.dart';
 
 class HomeScreen extends StatefulWidget {
-
   const HomeScreen({super.key});
 
   @override
@@ -12,7 +11,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final NotesRepo _notesRepo = NotesRepo();
+  final Set<String> idsToDelete = {};
   Map<String,bool> selectedDeleteIds = {};
+  
   void _showAddNoteDialog(BuildContext context) {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
@@ -86,6 +87,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void addOrDeleteId(bool? checked, String id){
+    if(checked==true){
+      idsToDelete.add(id);
+    }else{
+      idsToDelete.remove(id);
+    }
+    setState(()=>selectedDeleteIds[id] = checked??false);
+  }
+
+  void onDeleteClick()async{
+    for(var id in idsToDelete){
+      await _notesRepo.deleteNote(id);
+    }
+    setState(()=>idsToDelete.clear());
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +110,11 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('NoteStack'),
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
+        actions: [
+          Visibility(
+              visible: idsToDelete.isNotEmpty,
+              child: IconButton(onPressed: onDeleteClick, icon:Icon(Icons.delete)))
+        ],
       ),
         body: StreamBuilder<List<NoteModel>>(
           stream: _notesRepo.getNotes(),
@@ -134,9 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    leading: Checkbox(value: selectedDeleteIds[notes[index].id], onChanged: (value){
-                      setState(()=>selectedDeleteIds[notes[index].id] = value!);
-                    }),
+                    leading: Checkbox(value: selectedDeleteIds[note.id], 
+                        onChanged:(checked)=>addOrDeleteId(checked, note.id)),
                     trailing: note.isPinned
                         ? const Icon(Icons.push_pin, color: Colors.green)
                         : null,
