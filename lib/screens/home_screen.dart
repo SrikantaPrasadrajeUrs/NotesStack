@@ -14,10 +14,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final Set<String> idsToDelete = {};
   Map<String,bool> selectedDeleteIds = {};
   
-  void _showAddNoteDialog(BuildContext context) {
+  void _noteDialog(BuildContext context, {String type = "Add", NoteModel? noteModel}) {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
-    bool isPinned = false;
+    titleController.text = noteModel?.title??"";
+    contentController.text = noteModel?.content??"";
+    bool isPinned = noteModel?.isPinned??false;
 
     showDialog(
       context: context,
@@ -25,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Note'),
+              title: type=="Add"?const Text('Add Note'):const Text('Edit Note'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -64,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () async {
                     final title = titleController.text.trim();
                     final content = contentController.text.trim();
-
-                    if (title.isNotEmpty || content.isNotEmpty) {
+                    if (title.isEmpty || content.isEmpty) return;
+                    if(type=="Add") {
                       await _notesRepo.addNote(
                         title: title,
                         content: content,
@@ -73,11 +75,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         lastModifiedAt: DateTime.now(),
                         isPinned: isPinned,
                       );
+                    }else if(noteModel!=null){
+                      await _notesRepo.updateNote(
+                        noteModel,
+                        title: title,
+                        content: content,
+                        isPinned: isPinned,
+                      );
                     }
-
                     Navigator.pop(context); // Close dialog
                   },
-                  child: const Text('Add'),
+                  child: type=="Add"?const Text('Add'):const Text('Update'),
                 ),
               ],
             );
@@ -102,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(()=>idsToDelete.clear());
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   key: ValueKey(note.id),
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
+                    onLongPress: ()=>_noteDialog(context, type: "Edit", noteModel: note),
                     title: Text(note.title),
                     subtitle: Text(
                       note.content,
@@ -168,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddNoteDialog(context),
+        onPressed: () => _noteDialog(context),
         backgroundColor: Colors.green.shade600,
         child: const Icon(Icons.add, color: Colors.white),
       ),

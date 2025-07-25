@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../core/services/notes_service.dart';
 import '../models/note_model.dart';
 
@@ -13,7 +12,7 @@ class NotesRepo{
   }
 
   // Service -> repository -> Ui
-            // logics - Model class
+  // logics - Model class
   Future<void> addNote({required String title, required String content, required DateTime createdAt, required DateTime lastModifiedAt, required bool isPinned}){
     return notesService.addNote(NoteModel(id: '' ,title: title, content: content, createdAt: Timestamp.fromDate(createdAt), lastModifiedAt: Timestamp.fromDate(lastModifiedAt), isPinned: isPinned));
   }
