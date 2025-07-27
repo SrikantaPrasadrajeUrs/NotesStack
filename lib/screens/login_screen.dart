@@ -1,4 +1,4 @@
-import 'package:demo/core/services/auth_service.dart';
+import 'package:demo/repository/auth_repo.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,7 +9,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _loginService = AuthService();
+  final AuthRepo _authRepo = AuthRepo();
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
@@ -42,10 +42,9 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: const InputDecoration(labelText: 'Password'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async{
                 final email = _emailController.text;
                 final password = _passwordController.text;
-                _loginService.loginUser(email, password);
               },
               child: const Text('Login'),
             ),
