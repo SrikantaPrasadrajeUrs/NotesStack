@@ -1,7 +1,7 @@
 import 'package:demo/core/services/biometric_service.dart';
 import 'package:demo/firebase_options.dart';
 import 'package:demo/screens/login_screen.dart';
-import 'package:demo/screens/splash.dart';
+import 'package:demo/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
