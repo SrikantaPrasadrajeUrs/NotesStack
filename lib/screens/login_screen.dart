@@ -2,7 +2,8 @@ import 'package:demo/repository/auth_repo.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthRepo authRepo;
+  const LoginScreen({super.key, required this.authRepo});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();

@@ -1,15 +1,21 @@
+import 'package:demo/screens/login_screen.dart';
+import 'package:demo/screens/register.dart';
 import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../repository/auth_repo.dart';
 
-class Splash extends StatefulWidget {
-  const Splash({super.key});
+class Splash extends StatelessWidget {
+  final AuthRepo authRepo;
+  const Splash({super.key, required this.authRepo});
 
-  @override
-  State<Splash> createState() => _SplashState();
-}
+  void navigateToRegister(BuildContext context){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: authRepo)));
+  }
+  void navigateToLogin(BuildContext context){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: authRepo)));
+  }
 
-class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,8 +43,8 @@ class _SplashState extends State<Splash> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 spacing: 20,
                 children: [
-                  CustomButton(width: 170,onPressed: (){}, text: "Register", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), buttonBackgroundColor: Colors.indigoAccent),
-                  CustomButton(width: 170,onPressed: (){}, text: "Sign in", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black), buttonBackgroundColor: Colors.white, border: Border.all(color: Colors.indigoAccent, width: 1.5),)
+                  CustomButton(width: 170,onPressed: ()=>navigateToRegister(context), text: "Register", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), buttonBackgroundColor: Colors.indigoAccent),
+                  CustomButton(width: 170,onPressed: ()=>navigateToLogin(context), text: "Sign in", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black), buttonBackgroundColor: Colors.white, border: Border.all(color: Colors.indigoAccent, width: 1.5),)
                 ],
               ),
               Spacer(),
