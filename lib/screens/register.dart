@@ -1,4 +1,5 @@
 import 'package:demo/repository/auth_repo.dart';
+import 'package:demo/screens/login_screen.dart';
 import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,6 +17,7 @@ class _RegisterState extends State<Register> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late GlobalKey<FormState> formKey;
+  FocusNode focusNode = FocusNode();
 
   @override
   void initState() {
@@ -42,7 +44,10 @@ class _RegisterState extends State<Register> {
 
   void createAccount()async{
     if(!formKey.currentState!.validate()) return;
-    await widget.authRepo.createUser(_emailController.text, _passwordController.text);
+    bool isCreatedSuccessfully = await widget.authRepo.createUser(_emailController.text, _passwordController.text);
+    if(isCreatedSuccessfully){
+      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo, email: _emailController.text, password: _passwordController.text)));
+    }
   }
 
   @override
@@ -71,9 +76,11 @@ class _RegisterState extends State<Register> {
                   decoration: InputDecoration(
                       hintText: "Email address",
                   ),
+                  onFieldSubmitted: (_)=>focusNode.requestFocus(),
                 ),
                 SizedBox(height: 20),
                 TextFormField(
+                  focusNode: focusNode,
                   controller: _passwordController,
                   validator: (value)=>validate(value, type: "password"),
                   obscureText: turns,
