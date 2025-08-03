@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigoAccent),
       ),
-      home: Splash(authRepo: AuthRepo()),
+      home: WelcomeScreen(authRepo: AuthRepo()),
     );
   }
 }

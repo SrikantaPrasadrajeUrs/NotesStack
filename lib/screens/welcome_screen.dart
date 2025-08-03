@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:demo/screens/login_screen.dart';
 import 'package:demo/screens/register.dart';
 import 'package:demo/widgets/custom_button.dart';
@@ -5,15 +7,53 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../repository/auth_repo.dart';
 
-class Splash extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   final AuthRepo authRepo;
-  const Splash({super.key, required this.authRepo});
+  const WelcomeScreen({super.key, required this.authRepo});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin{
+
+  late AnimationController _animationController;
+  late Animation<Offset> _imageSlideAnimation;
+  late AnimationController _buttonAnimationController;
+  late Animation<Offset> _buttonSlideAnimation;
+  final double finalAngle = 3.115575554029089;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _imageSlideAnimation = Tween<Offset>(begin: Offset(1.5, 0),end: Offset(0, 0)).animate(_animationController);
+    _buttonAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
+    _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
+    WidgetsBinding.instance.addPostFrameCallback((_)=>_animationController.forward());
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _buttonAnimationController.dispose();
+    super.dispose();
+  }
 
   void navigateToRegister(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: authRepo)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo)));
   }
+
   void navigateToLogin(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: authRepo)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo)));
+  }
+
+  void forwardOrReverseArrow(){
+    if(_buttonAnimationController.isCompleted){
+      _buttonAnimationController.reverse();
+    }else{
+      _buttonAnimationController.forward();
+    }
   }
 
   @override
@@ -21,34 +61,119 @@ class Splash extends StatelessWidget {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal:16.0, vertical: 10),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.circular(45),
-                    child: Image.asset("assets/images/notes.jpeg", fit: BoxFit.fill, height: 360)),
-              ),
-              SizedBox(height: 20),
-              Text("Notes Stack", style: GoogleFonts.poppins(fontSize: 25, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
-              Text("Take notes anytime, stay organized everywhere. Your thoughts, saved and synced seamlessly.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.ptSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)
-              ),
-              Spacer(
-                flex: 3,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 20,
-                children: [
-                  CustomButton(width: 170,onPressed: ()=>navigateToRegister(context), text: "Register", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), buttonBackgroundColor: Colors.indigoAccent),
-                  CustomButton(width: 170,onPressed: ()=>navigateToLogin(context), text: "Sign in", textStyle: GoogleFonts.abel(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black), buttonBackgroundColor: Colors.white, border: Border.all(color: Colors.indigoAccent, width: 1.5),)
-                ],
-              ),
-              Spacer(),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child){
+                    return SlideTransition(
+                      position: _imageSlideAnimation,
+                      child: Transform.rotate(
+                        angle: _animationController.value*-pi,
+                        child: Transform.rotate(
+                          angle: finalAngle,
+                          child: Padding(
+                            padding: const EdgeInsets.all(25),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(180),
+                                  border: Border.all(color: Colors.yellow.shade300, width: 3),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.yellow.shade100,
+                                        blurRadius: 9,
+                                        spreadRadius: 6,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.06),
+                                      blurRadius: 9,
+                                      spreadRadius: 6,
+                                      offset: Offset(3, 5)
+                                    )
+                                  ]
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(180),
+                                child: Image.asset("assets/images/welcome_image.jpg", fit: BoxFit.fill, height: 300,),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Spacer(),
+                Text("Everything you need to say just to yourself..",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.arima(fontSize: 25, fontWeight: FontWeight.bold, letterSpacing: 1.5)
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "People can be clever as high as sky, but as long as they don't write, they will be lost in society and from history",
+                    style: GoogleFonts.arima(
+                      color: Colors.grey.shade600,
+                      letterSpacing: 1,
+                      fontSize: 16
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Spacer(
+                  flex: 3,
+                ),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedBuilder(
+                        animation: _buttonAnimationController,
+                        builder: (context, _) {
+                          return AnimatedOpacity(
+                            duration: const Duration(milliseconds: 500),
+                            opacity: _buttonAnimationController.value,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 20,
+                              children: [
+                                CustomButton(width: 170,onPressed: ()=>navigateToRegister(context), text: "Register", textStyle: GoogleFonts.arima(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black), buttonBackgroundColor: Colors.yellow),
+                                CustomButton(width: 170,onPressed: ()=>navigateToLogin(context), text: "Sign in", textStyle: GoogleFonts.arima(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black), buttonBackgroundColor: Colors.white, border: Border.all(color: Colors.yellow, width: 1.5),)
+                              ],
+                            ),
+                          );
+                        }
+                    ),
+                    Center(
+                      child: SlideTransition(
+                        position: _buttonSlideAnimation,
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: Colors.yellow,
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 3,
+                                    spreadRadius: 3
+                                )
+                              ]
+                          ),
+                          child: IconButton(onPressed: forwardOrReverseArrow, icon:Icon(Icons.arrow_forward_ios, size: 20)),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                Spacer(),
+              ],
+            ),
           ),
         ));
   }

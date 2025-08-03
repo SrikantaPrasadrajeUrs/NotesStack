@@ -37,17 +37,23 @@ class _LoginScreenState extends State<LoginScreen> {
     formKey = GlobalKey<FormState>();
   }
 
+  @override
+  void dispose(){
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+
+
   toggleEye() => setState(() => turns = !turns);
 
   String? validate(String? value, {String type = "password"}) {
-    if (value == null || value.isEmpty) {
-      return 'Field is required';
-    }
-    if (type == "password" && value.length < 6) {
-      return "Password must be at least 6 characters";
-    }
-    if (type == "email" && !value.contains("@")) {
+    if(value==null||value.isEmpty) return "This field is required";
+    if(type=="email"&&!value.contains("@")&&!value.contains(".")){
       return "Invalid email";
+    }else if(type=="password"&&value.length<6){
+      return "Password must be at least 6 characters";
     }
     return null;
   }
@@ -58,10 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void loginUser() async {
     if (!formKey.currentState!.validate()) return;
-    UserModel? userData = await widget.authRepo.loginUser(
-      _emailController.text,
-      _passwordController.text,
-    );
+    UserModel? userData;
 
     if (userData != null) {
       if (!userData.isBioMetricEnabled) {

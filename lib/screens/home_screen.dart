@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
         body: StreamBuilder<List<NoteModel>>(
-          stream: _notesRepo.getNotes(),
+          stream: _notesRepo.getNotes(""),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

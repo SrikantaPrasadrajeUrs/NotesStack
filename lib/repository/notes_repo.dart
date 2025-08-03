@@ -5,10 +5,10 @@ import '../models/note_model.dart';
 class NotesRepo{
   static final NotesService notesService = NotesService();
 
-  Stream<List<NoteModel>> getNotes(){
-    return notesService.getNotes().map((snapshot)=>snapshot.docs.map((doc){
-      return NoteModel.fromJson(doc.data() as Map<String,dynamic>).copyWith(id: doc.id);
-    }).toList());
+  Stream<List<NoteModel>> getNotes(String userId){
+    return notesService.getNotes().map((snapshot)=>snapshot.docs.where((doc){
+      return doc['userId'] == userId;
+    }).map((doc)=>NoteModel.fromJson(doc.data() as Map<String,dynamic>)).toList());
   }
 
   // Service -> repository -> Ui
