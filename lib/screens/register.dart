@@ -2,6 +2,7 @@ import 'package:demo/repository/auth_repo.dart';
 import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/social_button.dart';
 import 'login_screen.dart';
 
 class Register extends StatefulWidget {
@@ -64,6 +65,8 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  void navigateToSignIn()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo)));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +96,7 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: navigateToSignIn,
                     child: Text(
                       "Sign in",
                       style: GoogleFonts.quicksand(
@@ -155,9 +158,9 @@ class _RegisterState extends State<Register> {
                 textStyle: GoogleFonts.quicksand(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
-                buttonBackgroundColor: Colors.indigoAccent,
+                buttonBackgroundColor: Colors.yellow,
               ),
               SizedBox(height: 10),
               Row(
@@ -172,6 +175,15 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                   Expanded(child: Divider()),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SocialButton(imagePath: "assets/images/google.png", onPressed: (){}),
+                  SocialButton(imagePath: "assets/images/apple.png", onPressed: (){}),
+                  SocialButton(imagePath: "assets/images/facebook.png", onPressed: (){})
                 ],
               ),
               Spacer(),

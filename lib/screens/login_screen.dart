@@ -2,6 +2,8 @@ import 'package:demo/core/services/biometric_service.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:demo/repository/auth_repo.dart';
 import 'package:demo/screens/home_screen.dart';
+import 'package:demo/screens/register.dart';
+import 'package:demo/widgets/social_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/custom_button.dart';
@@ -44,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-
+  void navigateToRegister()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo)));
 
   toggleEye() => setState(() => turns = !turns);
 
@@ -141,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: navigateToRegister,
                     child: Text(
                       "Sign up",
                       style: GoogleFonts.quicksand(
@@ -199,9 +201,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 textStyle: GoogleFonts.quicksand(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
-                buttonBackgroundColor: Colors.indigoAccent,
+                buttonBackgroundColor: Colors.yellow,
               ),
               SizedBox(height: 10),
               Row(
@@ -216,6 +218,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Expanded(child: Divider()),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SocialButton(imagePath: "assets/images/google.png", onPressed: (){}),
+                  SocialButton(imagePath: "assets/images/apple.png", onPressed: (){}),
+                  SocialButton(imagePath: "assets/images/facebook.png", onPressed: (){})
                 ],
               ),
               Spacer(flex: 2),
