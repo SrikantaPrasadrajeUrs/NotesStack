@@ -1,4 +1,4 @@
-# demo
+# Notes Stack
 
 A new Flutter project.
 
