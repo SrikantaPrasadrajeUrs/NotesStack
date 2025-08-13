@@ -5,7 +5,9 @@ class AuthService{
   final _auth = FirebaseAuth.instance;
 
   Future<User?> loginUser(String email, String password)async{
-    return await _auth.signInWithEmailAndPassword(email: email, password: password).then((result) => result.user);
+    return await _auth.signInWithEmailAndPassword(email: email, password: password).then((result) {
+      return result.user;
+    });
   }
 
   Future<User?> createUser(String email, String password) async {
@@ -13,5 +15,13 @@ class AuthService{
         email: email,
         password: password,
       ).then((result) => result.user);
+  }
+
+  Future<String> updateImage(String imageUrl)async{
+    final user = _auth.currentUser;
+    if(user!=null){
+      await user.updatePhotoURL(imageUrl);
+    }
+    return imageUrl;
   }
 }

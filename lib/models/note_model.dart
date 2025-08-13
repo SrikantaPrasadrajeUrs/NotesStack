@@ -7,6 +7,7 @@ class NoteModel{
   final Timestamp createdAt;
   final Timestamp lastModifiedAt;
   final bool isPinned;
+  final String userId;
 
   NoteModel({
     required this.id,
@@ -15,6 +16,7 @@ class NoteModel{
     required this.createdAt,
     required this.lastModifiedAt,
     required this.isPinned,
+    this.userId = "",
   });
 
   Map<String,dynamic> toJson(){
@@ -25,6 +27,7 @@ class NoteModel{
       'createdAt':createdAt,
       'lastModifiedAt':lastModifiedAt,
       'isPinned':isPinned,
+      'userId':userId,
     };
   }
 
@@ -36,6 +39,7 @@ class NoteModel{
       createdAt: json['createdAt'],
       lastModifiedAt: json['lastModifiedAt'],
       isPinned: json['isPinned'],
+      userId: json['userId']
     );
   }
 
@@ -46,6 +50,7 @@ class NoteModel{
     Timestamp? createdAt,
     Timestamp? lastModifiedAt,
     bool? isPinned,
+    String? userId,
   }) {
     return NoteModel(
       id: id ?? this.id,
@@ -54,6 +59,7 @@ class NoteModel{
       createdAt: createdAt ?? this.createdAt,
       lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
       isPinned: isPinned ?? this.isPinned,
+      userId: userId ?? this.userId,
     );
   }
 

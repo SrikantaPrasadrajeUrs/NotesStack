@@ -6,7 +6,7 @@ class AuthRepo{
   Future<UserModel?> loginUser(String email, String password)async{
     final user = await _authService.loginUser(email, password);
     if(user!=null){
-      return UserModel(id: user.uid, name: user.displayName??'', email: user.email??'', password: password);
+      return UserModel(id: user.uid, name: user.displayName??'', email: user.email??'', password: password, profileImageUrl: user.photoURL);
     }
     return null;
   }
@@ -14,4 +14,9 @@ class AuthRepo{
   Future<bool> createUser(String email, String password)async{
     return await _authService.createUser(email, password).then((result)=>result!=null);
   }
+
+  Future<String> updateImage(String imageUrl)async{
+    return await _authService.updateImage(imageUrl);
+  }
+
 }

@@ -16,6 +16,17 @@ class UserModel{
     this.isBioMetricEnabled = false,
   });
 
+  UserModel copyWith({String? profileImage}){
+    return UserModel(
+      id: id,
+      name: name,
+      email: email,
+      password: password,
+      profileImageUrl: profileImage??profileImageUrl,
+      isBioMetricEnabled: isBioMetricEnabled,
+    );
+  }
+
   @override
   String toString() {
     return "User => name: $name, email: $email";

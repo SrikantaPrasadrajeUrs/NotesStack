@@ -1,8 +1,10 @@
 import 'package:demo/core/services/biometric_service.dart';
+import 'package:demo/core/services/user_service.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:demo/repository/auth_repo.dart';
 import 'package:demo/screens/home_screen.dart';
 import 'package:demo/screens/register.dart';
+import 'package:demo/utils/utils.dart';
 import 'package:demo/widgets/social_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,10 +28,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool turns = false;
+  List<String> images = ["assets/images/google.png","assets/images/apple.png","assets/images/facebook.png"];
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late GlobalKey<FormState> formKey;
   FocusNode focusNode = FocusNode();
+  final UserService userService = UserService();
 
   @override
   void initState() {
@@ -60,17 +64,18 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  void navigateToHome(){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen()));
+  void navigateToHome(UserModel userData){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
   }
 
   void loginUser() async {
     if (!formKey.currentState!.validate()) return;
-    UserModel? userData;
+    UserModel? userData = await widget.authRepo.loginUser(_emailController.text, _passwordController.text);
 
     if (userData != null) {
       if (!userData.isBioMetricEnabled) {
         showDialog(
+          barrierDismissible: false,
           context: context,
           builder: (context) {
             return AlertDialog(
@@ -82,23 +87,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    userService.addUserOrUpdateUser(userData.id).then((_)=>navigateToHome(userData));
                   },
                   child: Text("No, Thanks"),
                 ),
                 TextButton(
                   onPressed: () async {
+                    userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true);
                     final isValid = await BiometricService().authenticateUser();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isValid
-                              ? "Successfully authenticated"
-                              : "Authentication failed",
-                        ),
-                      ),
-                    );
-                    if (isValid) {
-                      navigateToHome();
+                    if(isValid){
+                      showSnackBar(context,  isValid
+                          ? "Successfully authenticated"
+                          : "Authentication failed");
+                    }else{
+                      showSnackBar(context,  "Authentication failed");
+                      navigateToHome(userData);
                     }
                   },
                   child: Text("Enable"),
@@ -106,9 +109,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             );
           },
-        ).whenComplete(()=>navigateToHome());
-      } else {
-        navigateToHome();
+        );
+      }
+      else {
+        navigateToHome(userData);
       }
     }
   }
@@ -223,11 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SocialButton(imagePath: "assets/images/google.png", onPressed: (){}),
-                  SocialButton(imagePath: "assets/images/apple.png", onPressed: (){}),
-                  SocialButton(imagePath: "assets/images/facebook.png", onPressed: (){})
-                ],
+                children: images.map((imagePath)=>SocialButton(imagePath: imagePath, onPressed: (){})).toList(),
               ),
               Spacer(flex: 2),
             ],

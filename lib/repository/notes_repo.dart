@@ -13,8 +13,8 @@ class NotesRepo{
 
   // Service -> repository -> Ui
   // logics - Model class
-  Future<void> addNote({required String title, required String content, required DateTime createdAt, required DateTime lastModifiedAt, required bool isPinned}){
-    return notesService.addNote(NoteModel(id: '' ,title: title, content: content, createdAt: Timestamp.fromDate(createdAt), lastModifiedAt: Timestamp.fromDate(lastModifiedAt), isPinned: isPinned));
+  Future<void> addNote({required String title, required String content, required DateTime createdAt, required DateTime lastModifiedAt, required bool isPinned, required String userId}){
+    return notesService.addNote(NoteModel(id: '' ,title: title, content: content, createdAt: Timestamp.fromDate(createdAt), lastModifiedAt: Timestamp.fromDate(lastModifiedAt), isPinned: isPinned, userId: userId));
   }
 
   Future<void> deleteNote(String id){
