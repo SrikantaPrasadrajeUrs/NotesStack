@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:demo/constants/env.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:flutter/material.dart';

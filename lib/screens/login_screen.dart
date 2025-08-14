@@ -1,4 +1,5 @@
 import 'package:demo/core/services/biometric_service.dart';
+import 'package:demo/core/services/secure_storage_service.dart';
 import 'package:demo/core/services/user_service.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:demo/repository/auth_repo.dart';
@@ -94,14 +95,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () async {
                     userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true);
+                    SecureStorageService().storeUserId(userData.id);
                     final isValid = await BiometricService().authenticateUser();
                     if(isValid){
-                      showSnackBar(context,  isValid
-                          ? "Successfully authenticated"
-                          : "Authentication failed");
+
+                      showSnackBar(context,"Successfully authenticated");
+                      navigateToHome(userData);
                     }else{
                       showSnackBar(context,  "Authentication failed");
-                      navigateToHome(userData);
                     }
                   },
                   child: Text("Enable"),

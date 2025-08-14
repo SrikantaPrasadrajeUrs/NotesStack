@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:demo/core/services/secure_storage_service.dart';
 import 'package:demo/screens/login_screen.dart';
 import 'package:demo/screens/register.dart';
 import 'package:demo/widgets/custom_button.dart';
@@ -30,7 +31,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _imageSlideAnimation = Tween<Offset>(begin: Offset(1.5, 0),end: Offset(0, 0)).animate(_animationController);
     _buttonAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
     _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
-    WidgetsBinding.instance.addPostFrameCallback((_)=>_animationController.forward());
+    WidgetsBinding.instance.addPostFrameCallback((_)async{
+      _animationController.forward();
+      print(await SecureStorageService().getUserId());
+    });
   }
 
   @override
