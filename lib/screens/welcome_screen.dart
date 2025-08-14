@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:demo/core/services/biometric_service.dart';
 import 'package:demo/core/services/secure_storage_service.dart';
+import 'package:demo/core/services/user_service.dart';
+import 'package:demo/screens/home_screen.dart';
 import 'package:demo/screens/login_screen.dart';
 import 'package:demo/screens/register.dart';
 import 'package:demo/widgets/custom_button.dart';
@@ -17,7 +20,8 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin{
-
+  final SecureStorageService _secureStorageService = SecureStorageService();
+  final BiometricService _biometricService = BiometricService();
   late AnimationController _animationController;
   late Animation<Offset> _imageSlideAnimation;
   late AnimationController _buttonAnimationController;
@@ -33,7 +37,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
     WidgetsBinding.instance.addPostFrameCallback((_)async{
       _animationController.forward();
-      print(await SecureStorageService().getUserId());
+      _secureStorageService.getUserId().then((id){
+
+        if(id!=null){
+          UserService().getUserData(uid: id).then(print);
+          _biometricService.authenticateUser().then((isValid){
+            if(isValid){
+
+              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: ,)));
+            }
+          });
+        }
+      });
     });
   }
 
@@ -45,11 +60,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
   }
 
   void navigateToRegister(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo, secureStorageService: _secureStorageService, biometricService: _biometricService)));
   }
 
   void navigateToLogin(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo, secureStorageService: _secureStorageService, biometricService: _biometricService)));
   }
 
   void forwardOrReverseArrow(){

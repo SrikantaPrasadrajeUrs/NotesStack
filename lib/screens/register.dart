@@ -2,12 +2,16 @@ import 'package:demo/repository/auth_repo.dart';
 import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/services/biometric_service.dart';
+import '../core/services/secure_storage_service.dart';
 import '../widgets/social_button.dart';
 import 'login_screen.dart';
 
 class Register extends StatefulWidget {
   final AuthRepo authRepo;
-  const Register({super.key, required this.authRepo});
+  final SecureStorageService secureStorageService;
+  final BiometricService biometricService;
+  const Register({super.key, required this.authRepo, required this.secureStorageService, required this.biometricService});
 
   @override
   State<Register> createState() => _RegisterState();
@@ -58,6 +62,8 @@ class _RegisterState extends State<Register> {
                   authRepo: widget.authRepo,
                   email: _emailController.text,
                   password: _passwordController.text,
+                  secureStorageService: widget.secureStorageService,
+                  biometricService: widget.biometricService,
                 ),
           ),
         );
@@ -65,7 +71,7 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  void navigateToSignIn()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo)));
+  void navigateToSignIn()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>LoginScreen(authRepo: widget.authRepo, secureStorageService: widget.secureStorageService, biometricService: widget.biometricService,)));
 
   @override
   Widget build(BuildContext context) {

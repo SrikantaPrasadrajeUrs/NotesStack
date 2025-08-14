@@ -15,12 +15,16 @@ class LoginScreen extends StatefulWidget {
   final String? email;
   final String? password;
   final AuthRepo authRepo;
+  final SecureStorageService secureStorageService;
+  final BiometricService biometricService;
 
   const LoginScreen({
     super.key,
     required this.authRepo,
     this.email,
     this.password,
+    required this.secureStorageService,
+    required this.biometricService
   });
 
   @override
@@ -51,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void navigateToRegister()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo)));
+  void navigateToRegister()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo, secureStorageService: widget.secureStorageService, biometricService: widget.biometricService,)));
 
   toggleEye() => setState(() => turns = !turns);
 
@@ -94,8 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true);
-                    SecureStorageService().storeUserId(userData.id);
+                   await  userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true,profileUrl: "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?cs=srgb&dl=pexels-souvenirpixels-414612.jpg&fm=jpg");
+                    widget.secureStorageService.storeUserId(userData.id);
                     final isValid = await BiometricService().authenticateUser();
                     if(isValid){
 
