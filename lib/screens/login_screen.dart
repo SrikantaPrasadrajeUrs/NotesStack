@@ -92,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    widget.secureStorageService.storeUserId(userData.id);
                     userService.addUserOrUpdateUser(userData.id).then((_)=>navigateToHome(userData));
                   },
                   child: Text("No, Thanks"),

@@ -37,16 +37,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
     WidgetsBinding.instance.addPostFrameCallback((_)async{
       _animationController.forward();
-      _secureStorageService.getUserId().then((id){
-
+      _secureStorageService.getUserId().then((id)async{
+        await Future.delayed(Duration(seconds: 2));
         if(id!=null){
-          UserService().getUserData(uid: id).then(print);
-          _biometricService.authenticateUser().then((isValid){
-            if(isValid){
-
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: ,)));
-            }
-          });
+          final userData = await UserService().getUserData(uid: id);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
+          // _biometricService.authenticateUser().then((isValid){
+          //   if(isValid){
+          //
+          //     // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: ,)));
+          //   }
+          // });
         }
       });
     });

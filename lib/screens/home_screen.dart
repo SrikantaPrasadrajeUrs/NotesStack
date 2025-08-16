@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:demo/constants/env.dart';
 import 'package:demo/models/user_model.dart';
+import 'package:demo/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final NotesRepo _notesRepo;
   late final AuthRepo _authRepo;
+  late final ImagePicker _imagePicker;
   final String bucketName = "srikanta";
   final String dummyImageUrl = "https://img.freepik.com/free-vector/businessman-character-avatar-isolated_24877-60111.jpg";
   late final StorageFileApi bucket;
@@ -33,7 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _authRepo = AuthRepo();
     _notesRepo = NotesRepo();
     userData = widget.userData;
+    _imagePicker = ImagePicker();
   }
+
+
   
   void _noteDialog(BuildContext context, {String type = "Add", NoteModel? noteModel}) {
     final titleController = TextEditingController();
@@ -134,21 +140,66 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(()=>idsToDelete.clear());
   }
 
-
-
-  Future<void> uploadProfileImage()async{
-    ImagePicker imagePicker = ImagePicker();
-    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-    if(pickedFile==null) return;
-    final File file = File(pickedFile.path);
-    final storage = Supabase.instance.client.storage;
-    final bucket = storage.from(bucketName);
-    final path = await bucket.upload("uploads/${pickedFile.name}", file);
-    final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
-    await _authRepo.updateImage(url);
-    userData = userData.copyWith(profileImage: url);
-    setState(()=>userData);
+  void showImageAccessDialog(){
+    showDialog(context: context,
+        builder: (context){
+      return AlertDialog(
+        content: SizedBox(
+          height: 200,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Please select image"),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: (){
+                    Navigator.pop(context);
+                    uploadProfileImage(ImageSource.camera);
+                  }, child: Text("Camera")),
+                  TextButton(onPressed: (){
+                    Navigator.pop(context);
+                    uploadProfileImage(ImageSource.gallery);
+                  }, child: Text("Gallery"))
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    });
   }
+
+  Future<void> uploadProfileImage(ImageSource imageSource)async{
+    final pickedFile = await _imagePicker.pickImage(source: imageSource);
+    if(pickedFile==null) {
+      showSnackBar(context, "No image selected");
+      return;
+    }
+    File file = File(pickedFile.path);
+    final path = await bucket.upload("uploads/${pickedFile.name}", file);
+    print("path $path");
+    final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
+    _authRepo.updateImage(url);
+    setState(()=>userData = userData.copyWith(profileImage: url));
+  }
+
+
+
+  // Future<void> uploadProfileImage()async{
+  //   ImagePicker imagePicker = ImagePicker();
+  //   final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+  //   if(pickedFile==null) return;
+  //   final File file = File(pickedFile.path);
+  //   final storage = Supabase.instance.client.storage;
+  //   final bucket = storage.from(bucketName);
+  //   final path = await bucket.upload("uploads/${pickedFile.name}", file);
+  //   final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
+  //   await _authRepo.updateImage(url);
+  //   userData = userData.copyWith(profileImage: url);
+  //   setState(()=>userData);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
         leading: GestureDetector(
-          onTap: uploadProfileImage,
+          onTap: showImageAccessDialog,
           child: Padding(
             padding: const EdgeInsets.all(4.0),
             child: ClipRRect(
