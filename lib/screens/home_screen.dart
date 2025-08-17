@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:demo/constants/env.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:demo/utils/utils.dart';
@@ -177,29 +176,15 @@ class _HomeScreenState extends State<HomeScreen> {
       showSnackBar(context, "No image selected");
       return;
     }
-    File file = File(pickedFile.path);
+    final File file = File(pickedFile.path);
+    final storage = Supabase.instance.client.storage;
+    final bucket = storage.from(bucketName);
     final path = await bucket.upload("uploads/${pickedFile.name}", file);
-    print("path $path");
     final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
-    _authRepo.updateImage(url);
-    setState(()=>userData = userData.copyWith(profileImage: url));
+    await _authRepo.updateImage(url);
+    userData = userData.copyWith(profileImage: url);
+    setState(()=>userData);
   }
-
-
-
-  // Future<void> uploadProfileImage()async{
-  //   ImagePicker imagePicker = ImagePicker();
-  //   final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-  //   if(pickedFile==null) return;
-  //   final File file = File(pickedFile.path);
-  //   final storage = Supabase.instance.client.storage;
-  //   final bucket = storage.from(bucketName);
-  //   final path = await bucket.upload("uploads/${pickedFile.name}", file);
-  //   final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
-  //   await _authRepo.updateImage(url);
-  //   userData = userData.copyWith(profileImage: url);
-  //   setState(()=>userData);
-  // }
 
   @override
   Widget build(BuildContext context) {
