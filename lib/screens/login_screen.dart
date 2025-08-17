@@ -1,7 +1,12 @@
 import 'package:demo/core/services/biometric_service.dart';
+import 'package:demo/core/services/secure_storage_service.dart';
+import 'package:demo/core/services/user_service.dart';
 import 'package:demo/models/user_model.dart';
 import 'package:demo/repository/auth_repo.dart';
 import 'package:demo/screens/home_screen.dart';
+import 'package:demo/screens/register.dart';
+import 'package:demo/utils/utils.dart';
+import 'package:demo/widgets/social_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/custom_button.dart';
@@ -10,12 +15,16 @@ class LoginScreen extends StatefulWidget {
   final String? email;
   final String? password;
   final AuthRepo authRepo;
+  final SecureStorageService secureStorageService;
+  final BiometricService biometricService;
 
   const LoginScreen({
     super.key,
     required this.authRepo,
     this.email,
     this.password,
+    required this.secureStorageService,
+    required this.biometricService
   });
 
   @override
@@ -24,10 +33,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool turns = false;
+  List<String> images = ["assets/images/google.png","assets/images/apple.png","assets/images/facebook.png"];
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late GlobalKey<FormState> formKey;
   FocusNode focusNode = FocusNode();
+  final UserService userService = UserService();
 
   @override
   void initState() {
@@ -37,35 +48,39 @@ class _LoginScreenState extends State<LoginScreen> {
     formKey = GlobalKey<FormState>();
   }
 
+  @override
+  void dispose(){
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void navigateToRegister()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo, secureStorageService: widget.secureStorageService, biometricService: widget.biometricService,)));
+
   toggleEye() => setState(() => turns = !turns);
 
   String? validate(String? value, {String type = "password"}) {
-    if (value == null || value.isEmpty) {
-      return 'Field is required';
-    }
-    if (type == "password" && value.length < 6) {
-      return "Password must be at least 6 characters";
-    }
-    if (type == "email" && !value.contains("@")) {
+    if(value==null||value.isEmpty) return "This field is required";
+    if(type=="email"&&!value.contains("@")&&!value.contains(".")){
       return "Invalid email";
+    }else if(type=="password"&&value.length<6){
+      return "Password must be at least 6 characters";
     }
     return null;
   }
 
-  void navigateToHome(){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen()));
+  void navigateToHome(UserModel userData){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
   }
 
   void loginUser() async {
     if (!formKey.currentState!.validate()) return;
-    UserModel? userData = await widget.authRepo.loginUser(
-      _emailController.text,
-      _passwordController.text,
-    );
+    UserModel? userData = await widget.authRepo.loginUser(_emailController.text, _passwordController.text);
 
     if (userData != null) {
       if (!userData.isBioMetricEnabled) {
         showDialog(
+          barrierDismissible: false,
           context: context,
           builder: (context) {
             return AlertDialog(
@@ -77,23 +92,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    widget.secureStorageService.storeUserId(userData.id);
+                    userService.addUserOrUpdateUser(userData.id).then((_)=>navigateToHome(userData));
                   },
                   child: Text("No, Thanks"),
                 ),
                 TextButton(
                   onPressed: () async {
+                   await  userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true,profileUrl: "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?cs=srgb&dl=pexels-souvenirpixels-414612.jpg&fm=jpg");
+                    widget.secureStorageService.storeUserId(userData.id);
                     final isValid = await BiometricService().authenticateUser();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isValid
-                              ? "Successfully authenticated"
-                              : "Authentication failed",
-                        ),
-                      ),
-                    );
-                    if (isValid) {
-                      navigateToHome();
+                    if(isValid){
+
+                      showSnackBar(context,"Successfully authenticated");
+                      navigateToHome(userData);
+                    }else{
+                      showSnackBar(context,  "Authentication failed");
                     }
                   },
                   child: Text("Enable"),
@@ -101,9 +115,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             );
           },
-        ).whenComplete(()=>navigateToHome());
-      } else {
-        navigateToHome();
+        );
+      }
+      else {
+        navigateToHome(userData);
       }
     }
   }
@@ -138,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: navigateToRegister,
                     child: Text(
                       "Sign up",
                       style: GoogleFonts.quicksand(
@@ -196,9 +211,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 textStyle: GoogleFonts.quicksand(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
-                buttonBackgroundColor: Colors.indigoAccent,
+                buttonBackgroundColor: Colors.yellow,
               ),
               SizedBox(height: 10),
               Row(
@@ -214,6 +229,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   Expanded(child: Divider()),
                 ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: images.map((imagePath)=>SocialButton(imagePath: imagePath, onPressed: (){})).toList(),
               ),
               Spacer(flex: 2),
             ],

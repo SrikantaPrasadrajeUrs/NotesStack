@@ -7,6 +7,8 @@
 	<key>CFBundleDisplayName</key>
 	<string>Demo</string>
 	<key>NSFaceIDUsageDescription</key>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use gallery access image profile</string>
     <string>We use Face ID to secure your data</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>

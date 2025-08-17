@@ -1,18 +1,44 @@
+import 'dart:io';
+import 'package:demo/constants/env.dart';
+import 'package:demo/models/user_model.dart';
+import 'package:demo/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/note_model.dart';
+import '../repository/auth_repo.dart';
 import '../repository/notes_repo.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final UserModel userData;
+  const HomeScreen({super.key, required this.userData});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final NotesRepo _notesRepo = NotesRepo();
+  late final NotesRepo _notesRepo;
+  late final AuthRepo _authRepo;
+  late final ImagePicker _imagePicker;
+  final String bucketName = "srikanta";
+  final String dummyImageUrl = "https://img.freepik.com/free-vector/businessman-character-avatar-isolated_24877-60111.jpg";
+  late final StorageFileApi bucket;
   final Set<String> idsToDelete = {};
   Map<String,bool> selectedDeleteIds = {};
+  late UserModel userData;
+
+  @override
+  void initState() {
+    super.initState();
+    bucket = Supabase.instance.client.storage.from(bucketName);
+    _authRepo = AuthRepo();
+    _notesRepo = NotesRepo();
+    userData = widget.userData;
+    _imagePicker = ImagePicker();
+  }
+
+
   
   void _noteDialog(BuildContext context, {String type = "Add", NoteModel? noteModel}) {
     final titleController = TextEditingController();
@@ -29,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return AlertDialog(
               title: type=="Add"?const Text('Add Note'):const Text('Edit Note'),
               content: Column(
+                spacing: 10,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
@@ -74,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         createdAt: DateTime.now(),
                         lastModifiedAt: DateTime.now(),
                         isPinned: isPinned,
+                        userId: widget.userData.id
                       );
                     }else if(noteModel!=null){
                       await _notesRepo.updateNote(
@@ -111,6 +139,53 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(()=>idsToDelete.clear());
   }
 
+  void showImageAccessDialog(){
+    showDialog(context: context,
+        builder: (context){
+      return AlertDialog(
+        content: SizedBox(
+          height: 200,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Please select image"),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: (){
+                    Navigator.pop(context);
+                    uploadProfileImage(ImageSource.camera);
+                  }, child: Text("Camera")),
+                  TextButton(onPressed: (){
+                    Navigator.pop(context);
+                    uploadProfileImage(ImageSource.gallery);
+                  }, child: Text("Gallery"))
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Future<void> uploadProfileImage(ImageSource imageSource)async{
+    final pickedFile = await _imagePicker.pickImage(source: imageSource);
+    if(pickedFile==null) {
+      showSnackBar(context, "No image selected");
+      return;
+    }
+    final File file = File(pickedFile.path);
+    final storage = Supabase.instance.client.storage;
+    final bucket = storage.from(bucketName);
+    final path = await bucket.upload("uploads/${pickedFile.name}", file);
+    final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
+    await _authRepo.updateImage(url);
+    userData = userData.copyWith(profileImage: url);
+    setState(()=>userData);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,6 +193,20 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('NoteStack'),
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
+        leading: GestureDetector(
+          onTap: showImageAccessDialog,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network(
+                userData.profileImageUrl??dummyImageUrl,
+                errorBuilder: (context, _,__){
+                  return const Icon(Icons.person);
+                },
+            )),
+          ),
+        ),
         actions: [
           Visibility(
               visible: idsToDelete.isNotEmpty,
@@ -125,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
         body: StreamBuilder<List<NoteModel>>(
-          stream: _notesRepo.getNotes(),
+          stream: _notesRepo.getNotes(widget.userData.id),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

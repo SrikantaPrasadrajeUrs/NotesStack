@@ -5,16 +5,16 @@ import '../models/note_model.dart';
 class NotesRepo{
   static final NotesService notesService = NotesService();
 
-  Stream<List<NoteModel>> getNotes(){
-    return notesService.getNotes().map((snapshot)=>snapshot.docs.map((doc){
-      return NoteModel.fromJson(doc.data() as Map<String,dynamic>).copyWith(id: doc.id);
-    }).toList());
+  Stream<List<NoteModel>> getNotes(String userId){
+    return notesService.getNotes().map((snapshot)=>snapshot.docs.where((doc){
+      return doc['userId'] == userId;
+    }).map((doc)=>NoteModel.fromJson(doc.data() as Map<String,dynamic>)).toList());
   }
 
   // Service -> repository -> Ui
   // logics - Model class
-  Future<void> addNote({required String title, required String content, required DateTime createdAt, required DateTime lastModifiedAt, required bool isPinned}){
-    return notesService.addNote(NoteModel(id: '' ,title: title, content: content, createdAt: Timestamp.fromDate(createdAt), lastModifiedAt: Timestamp.fromDate(lastModifiedAt), isPinned: isPinned));
+  Future<void> addNote({required String title, required String content, required DateTime createdAt, required DateTime lastModifiedAt, required bool isPinned, required String userId}){
+    return notesService.addNote(NoteModel(id: '' ,title: title, content: content, createdAt: Timestamp.fromDate(createdAt), lastModifiedAt: Timestamp.fromDate(lastModifiedAt), isPinned: isPinned, userId: userId));
   }
 
   Future<void> deleteNote(String id){

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomButton extends StatefulWidget {
+class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
   final TextStyle textStyle;
@@ -16,24 +16,19 @@ class CustomButton extends StatefulWidget {
     required this.onPressed, required this.text, required this.textStyle, required this.buttonBackgroundColor});
 
   @override
-  State<CustomButton> createState() => _CustomButtonState();
-}
-
-class _CustomButtonState extends State<CustomButton> {
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onPressed,
+      onTap: onPressed,
       child: Container(
-        height: widget.height,
-        width: widget.width,
+        height: height,
+        width: width,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: widget.buttonBackgroundColor,
-          borderRadius: BorderRadius.circular(10),
-          border: widget.border,
+          color: buttonBackgroundColor,
+          borderRadius: BorderRadius.circular(30),
+          border: border,
         ),
-        child: Text(widget.text, style: widget.textStyle),
+        child: Text(text, style: textStyle),
       ),
     );
   }
