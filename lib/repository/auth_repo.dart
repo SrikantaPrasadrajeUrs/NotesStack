@@ -19,4 +19,7 @@ class AuthRepo{
     return await _authService.updateImage(imageUrl);
   }
 
+  Future<void> logout()async{
+    await _authService.logout();
+  }
 }

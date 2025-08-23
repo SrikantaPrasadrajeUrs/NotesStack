@@ -1,8 +1,7 @@
 import 'dart:math';
-
 import 'package:demo/core/services/biometric_service.dart';
 import 'package:demo/core/services/secure_storage_service.dart';
-import 'package:demo/core/services/user_service.dart';
+import 'package:demo/repository/user_repo.dart';
 import 'package:demo/screens/home_screen.dart';
 import 'package:demo/screens/login_screen.dart';
 import 'package:demo/screens/register.dart';
@@ -21,11 +20,24 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin{
   final SecureStorageService _secureStorageService = SecureStorageService();
+  final UserRepo _userRepo = UserRepo();
   final BiometricService _biometricService = BiometricService();
   late AnimationController _animationController, _buttonAnimationController, _opacityAnimationController;
   late Animation<Offset> _imageSlideAnimation;
   late Animation<Offset> _buttonSlideAnimation;
   final double finalAngle = 3.115575554029089;
+
+  void navigateToHome()=> _secureStorageService.getUserId().then((id)=> Future.delayed(Duration(seconds: 2), ()async{
+        if(id!=null){
+          final userData = await _userRepo.getUserData(uid: id);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
+          _biometricService.authenticateUser().then((isValid){
+            if(isValid){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData:userData)));
+            }
+          });
+        }
+      }));
 
   @override
   void initState() {
@@ -35,20 +47,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _buttonAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
     _opacityAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
-    WidgetsBinding.instance.addPostFrameCallback((_)async{
+    WidgetsBinding.instance.addPostFrameCallback((_){
       _animationController.forward().then((_)=>_opacityAnimationController.forward());
-      _secureStorageService.getUserId().then((id)async{
-        await Future.delayed(Duration(seconds: 2));
-        if(id!=null){
-          final userData = await UserService().getUserData(uid: id);
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
-          _biometricService.authenticateUser().then((isValid){
-            if(isValid){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData:userData)));
-            }
-          });
-        }
-      });
+      navigateToHome();
     });
   }
 

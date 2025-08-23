@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:demo/constants/env.dart';
+import 'package:demo/core/services/secure_storage_service.dart';
 import 'package:demo/models/user_model.dart';
+import 'package:demo/screens/welcome_screen.dart';
 import 'package:demo/utils/utils.dart';
+import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -186,9 +189,41 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(()=>userData);
   }
 
+  void logout()async{
+    await _authRepo.logout().then((_)async{
+      await SecureStorageService().clearStorage();
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>WelcomeScreen(authRepo: _authRepo)));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: Column(
+          children: [
+            SizedBox(height: 20,),
+            GestureDetector(
+              onTap: showImageAccessDialog,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Image.network(
+                      userData.profileImageUrl??dummyImageUrl,
+                      errorBuilder: (context, _,__){
+                        return const Icon(Icons.person);
+                      },
+                      width: 100,
+                    )),
+              ),
+            ),
+            Spacer(),
+            CustomButton(onPressed: logout, text: "Sig out", textStyle: TextStyle(color: Colors.white), buttonBackgroundColor: Colors.red),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: const Text('NoteStack'),
         backgroundColor: Colors.green.shade600,
