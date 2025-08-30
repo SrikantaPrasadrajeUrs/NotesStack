@@ -1,9 +1,9 @@
-import 'package:demo/repository/auth_repo.dart';
-import 'package:demo/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/services/biometric_service.dart';
 import '../core/services/secure_storage_service.dart';
+import '../repository/auth_repo.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
 import 'login_screen.dart';
 
@@ -116,6 +116,7 @@ class _RegisterState extends State<Register> {
               ),
               SizedBox(height: 70),
               TextFormField(
+                autofocus: true,
                 controller: _emailController,
                 validator: (value) => validate(value, type: "email"),
                 decoration: InputDecoration(hintText: "Email address"),

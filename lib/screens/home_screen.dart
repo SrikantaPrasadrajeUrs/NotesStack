@@ -1,17 +1,15 @@
 import 'dart:io';
-import 'package:demo/constants/env.dart';
-import 'package:demo/core/services/secure_storage_service.dart';
-import 'package:demo/models/user_model.dart';
-import 'package:demo/repository/user_repo.dart';
-import 'package:demo/screens/welcome_screen.dart';
-import 'package:demo/utils/utils.dart';
-import 'package:demo/widgets/custom_button.dart';
+import 'package:NotesStack/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../constants/env.dart';
+import '../core/services/secure_storage_service.dart';
 import '../models/note_model.dart';
+import '../models/user_model.dart';
 import '../repository/auth_repo.dart';
 import '../repository/notes_repo.dart';
+import '../utils/utils.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel userData;
@@ -24,7 +22,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final NotesRepo _notesRepo;
   late final AuthRepo _authRepo;
-  late final UserRepo _userRepo;
   late final ImagePicker _imagePicker;
   final String storageBucketName = "profileImages";
   final String dummyImageUrl =
@@ -40,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
     bucket = Supabase.instance.client.storage.from(storageBucketName);
     _authRepo = AuthRepo();
     _notesRepo = NotesRepo();
-    _userRepo = UserRepo();
     userData = widget.userData;
     _imagePicker = ImagePicker();
   }
@@ -268,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha:0.15),
                   blurRadius: 20,
                   offset: const Offset(5, 8),
                 ),
@@ -360,8 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final url = "${Env.supabaseUrl}/storage/v1/object/public/$path";
     Future.wait([
-      _authRepo.updateImage(url),
-      _userRepo.addUserOrUpdateUser(userData.id, profileUrl: url),
+      _authRepo.updateImage(uid: userData.id,imageUrl:url),
     ]);
     userData = userData.copyWith(profileImage: url);
     setState(() => userData);
@@ -370,10 +365,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void logout() async {
     await _authRepo.logout().then((_) async {
       await SecureStorageService().clearStorage();
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => WelcomeScreen(authRepo: _authRepo),
         ),
+        (route) => false,
       );
     });
   }
@@ -381,55 +377,89 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow.shade50, // light background
+      backgroundColor: Colors.yellow.shade50,
       drawer: Drawer(
-        backgroundColor: Colors.yellow.shade100,
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            GestureDetector(
-              onTap: showImageAccessDialog,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: Image.network(
-                    userData.profileImageUrl ?? dummyImageUrl,
-                    errorBuilder: (context, _, __) {
-                      return const Icon(
-                        Icons.person,
-                        size: 80,
-                        color: Colors.grey,
-                      );
-                    },
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
+        backgroundColor: Colors.yellow.shade50,
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              GestureDetector(
+                onTap: showImageAccessDialog,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha:0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Image.network(
+                      userData.profileImageUrl ?? dummyImageUrl,
+                      errorBuilder: (context, _, __) {
+                        return const Icon(
+                          Icons.person,
+                          size: 80,
+                          color: Colors.grey,
+                        );
+                      },
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              userData.name ?? "User",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.brown.shade800,
+              const SizedBox(height: 16),
+              Text(
+                userData.name ?? "User",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.brown.shade800,
+                ),
               ),
-            ),
-            const Spacer(),
-            CustomButton(
-              onPressed: logout,
-              text: "Sign out",
-              textStyle: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+
+              const SizedBox(height: 8),
+              Text(
+                userData.email ?? "",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.brown.shade600,
+                ),
               ),
-              buttonBackgroundColor: Colors.redAccent,
-            ),
-            const SizedBox(height: 20),
-          ],
+
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: EdgeInsets.all(14),
+                    elevation: 3,
+                  ),
+                  onPressed: logout,
+                  icon: const Icon(Icons.logout, color: Colors.white),
+                  label: const Text(
+                    "Sign out",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       appBar: AppBar(

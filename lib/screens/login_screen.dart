@@ -1,15 +1,15 @@
-import 'package:demo/core/services/biometric_service.dart';
-import 'package:demo/core/services/secure_storage_service.dart';
-import 'package:demo/core/services/user_service.dart';
-import 'package:demo/models/user_model.dart';
-import 'package:demo/repository/auth_repo.dart';
-import 'package:demo/screens/home_screen.dart';
-import 'package:demo/screens/register.dart';
-import 'package:demo/utils/utils.dart';
-import 'package:demo/widgets/social_button.dart';
+import 'package:NotesStack/screens/register.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/services/biometric_service.dart';
+import '../core/services/secure_storage_service.dart';
+import '../core/services/user_service.dart';
+import '../models/user_model.dart';
+import '../repository/auth_repo.dart';
+import '../utils/utils.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/social_button.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? email;
@@ -24,7 +24,7 @@ class LoginScreen extends StatefulWidget {
     this.email,
     this.password,
     required this.secureStorageService,
-    required this.biometricService
+    required this.biometricService,
   });
 
   @override
@@ -33,7 +33,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool turns = false;
-  List<String> images = ["assets/images/google.png","assets/images/apple.png","assets/images/facebook.png"];
+  List<String> images = [
+    "assets/images/google.png",
+    "assets/images/apple.png",
+    "assets/images/facebook.png",
+  ];
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late GlobalKey<FormState> formKey;
@@ -49,35 +53,67 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void navigateToRegister()=>Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register(authRepo: widget.authRepo, secureStorageService: widget.secureStorageService, biometricService: widget.biometricService,)));
+  void navigateToRegister() => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder:
+          (context) => Register(
+            authRepo: widget.authRepo,
+            secureStorageService: widget.secureStorageService,
+            biometricService: widget.biometricService,
+          ),
+    ),
+  );
 
   toggleEye() => setState(() => turns = !turns);
 
   String? validate(String? value, {String type = "password"}) {
-    if(value==null||value.isEmpty) return "This field is required";
-    if(type=="email"&&!value.contains("@")&&!value.contains(".")){
+    if (value == null || value.isEmpty) return "This field is required";
+    if (type == "email" && !value.contains("@") && !value.contains(".")) {
       return "Invalid email";
-    }else if(type=="password"&&value.length<6){
+    } else if (type == "password" && value.length < 6) {
       return "Password must be at least 6 characters";
     }
     return null;
   }
 
-  void navigateToHome(UserModel userData){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomeScreen(userData: userData)));
+  void navigateToHome(UserModel userData) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => HomeScreen(userData: userData)),
+      (_) => false,
+    );
+  }
+
+  void onBioMetricEnable(UserModel userData)async{
+    await userService.addUserOrUpdateUser(
+      userData.id,
+      isBiometricEnabled: true,
+      profileUrl:
+      "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?cs=srgb&dl=pexels-souvenirpixels-414612.jpg&fm=jpg",
+    );
+    final isValid = await BiometricService().authenticateUser();
+    if (isValid) {
+      showSnackBar(context, "Successfully authenticated");
+      navigateToHome(userData);
+    } else {
+      showSnackBar(context, "Authentication failed");
+    }
   }
 
   void loginUser() async {
     if (!formKey.currentState!.validate()) return;
-    UserModel? userData = await widget.authRepo.loginUser(_emailController.text, _passwordController.text);
+    UserModel? userData = await widget.authRepo.loginUser(
+      _emailController.text,
+      _passwordController.text,
+    );
 
     if (userData != null) {
+      widget.secureStorageService.storeUserId(userData.id);
       if (!userData.isBioMetricEnabled) {
         showDialog(
           barrierDismissible: false,
@@ -92,32 +128,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    widget.secureStorageService.storeUserId(userData.id);
-                    userService.addUserOrUpdateUser(userData.id).then((_)=>navigateToHome(userData));
+                    userService
+                        .addUserOrUpdateUser(userData.id)
+                        .then((_) => navigateToHome(userData));
                   },
                   child: Text("No, Thanks"),
                 ),
                 TextButton(
-                  onPressed: () async {
-                   await  userService.addUserOrUpdateUser(userData.id, isBiometricEnabled: true,profileUrl: "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?cs=srgb&dl=pexels-souvenirpixels-414612.jpg&fm=jpg");
-                    widget.secureStorageService.storeUserId(userData.id);
-                    final isValid = await BiometricService().authenticateUser();
-                    if(isValid){
-
-                      showSnackBar(context,"Successfully authenticated");
-                      navigateToHome(userData);
-                    }else{
-                      showSnackBar(context,  "Authentication failed");
-                    }
-                  },
+                  onPressed: ()=>onBioMetricEnable(userData),
                   child: Text("Enable"),
                 ),
               ],
             );
           },
         );
-      }
-      else {
+      } else {
         navigateToHome(userData);
       }
     }
@@ -167,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: 70),
               TextFormField(
+                autofocus: true,
                 controller: _emailController,
                 validator: (value) => validate(value, type: "email"),
                 decoration: InputDecoration(hintText: "Email address"),
@@ -233,7 +259,15 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: images.map((imagePath)=>SocialButton(imagePath: imagePath, onPressed: (){})).toList(),
+                children:
+                    images
+                        .map(
+                          (imagePath) => SocialButton(
+                            imagePath: imagePath,
+                            onPressed: () {},
+                          ),
+                        )
+                        .toList(),
               ),
               Spacer(flex: 2),
             ],
