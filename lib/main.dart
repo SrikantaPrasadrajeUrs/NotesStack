@@ -1,10 +1,10 @@
-import 'package:demo/constants/env.dart';
-import 'package:demo/firebase_options.dart';
-import 'package:demo/repository/auth_repo.dart';
-import 'package:demo/screens/welcome_screen.dart';
+import 'package:NotesStack/repository/auth_repo.dart';
+import 'package:NotesStack/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'constants/env.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,3 +49,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+///
+/// (ᵔᴥᵔ) (ᵔᴥᵔ) (｡◕‿◕｡) \(◠‿◠)/
+///

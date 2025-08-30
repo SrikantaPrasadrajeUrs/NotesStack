@@ -1,5 +1,5 @@
 
-import 'package:demo/core/services/user_service.dart';
+import '../core/services/user_service.dart';
 import '../models/user_model.dart';
 
 class UserRepo{
