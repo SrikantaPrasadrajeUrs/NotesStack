@@ -8,7 +8,7 @@ class NotesRepo{
   Stream<List<NoteModel>> getNotes(String userId){
     return notesService.getNotes().map((snapshot)=>snapshot.docs.where((doc){
       return doc['userId'] == userId;
-    }).map((doc)=>NoteModel.fromJson(doc.data() as Map<String,dynamic>)).toList());
+    }).map((doc)=>NoteModel.fromJson(doc.data() as Map<String,dynamic>, id: doc.id)).toList());
   }
 
   // Service -> repository -> Ui
