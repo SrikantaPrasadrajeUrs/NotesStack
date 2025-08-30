@@ -61,3 +61,9 @@ A **Flutter notes app** with **Email/Password Authentication**, **Fingerprint Lo
    ```bash
    git clone https://github.com/SrikantaPrasadrajeUrs/NotesStack.git
    cd NotesStack
+
+2. flutter pub get
+3. Configure Firebase & Supabase:
+    - Add google-services.json (Android) or GoogleService-Info.plist (iOS).
+    - Setup Supabase project & update storage bucket details (make sure to change constants/Env.dart).
+4. flutter run
