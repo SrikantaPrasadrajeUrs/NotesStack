@@ -48,8 +48,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     _opacityAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     _buttonSlideAnimation = Tween<Offset>(begin: Offset(0, 0), end: Offset(2.5, 0)).animate(_buttonAnimationController);
     WidgetsBinding.instance.addPostFrameCallback((_){
-      _animationController.forward().then((_)=>_opacityAnimationController.forward());
-      navigateToHome();
+      _animationController.forward().then((_)=>_opacityAnimationController.forward().then((_)=>navigateToHome()));
+      
     });
   }
 

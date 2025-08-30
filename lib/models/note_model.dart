@@ -31,9 +31,9 @@ class NoteModel{
     };
   }
 
-  factory NoteModel.fromJson(Map<String,dynamic> json){
+  factory NoteModel.fromJson(Map<String,dynamic> json, {required String id}){
     return NoteModel(
-      id: json['id']??"",
+      id: id,
       title: json['title'],
       content: json['content'],
       createdAt: json['createdAt'],
